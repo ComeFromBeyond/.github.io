@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remote Shutdown Control</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        .container { max-width: 500px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 10px; }
+        .btn { padding: 10px 20px; margin: 10px; font-size: 16px; cursor: pointer; }
+        .btn-on { background-color: #4CAF50; color: white; }
+        .btn-off { background-color: #f44336; color: white; }
+        .dropdown-container { display: flex; justify-content: space-between; flex-wrap: wrap; margin-top: 20px; }
+        select { padding: 10px; font-size: 16px; margin: 5px; flex: 1 1 30%; }
+        .submit-btn { padding: 15px 30px; font-size: 18px; margin-top: 20px; cursor: pointer; border: none; border-radius: 5px; transition: background-color 0.3s; }
+        .submit-btn { background-color: #007bff; color: white; }
+        .submit-btn:active { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Dropdowns and Shutdown Control -->
+        <h3>Force Shutdown Control</h3>
+        <div class="dropdown-container">
+            <!-- Computer Selection Dropdown -->
+            <select id="computerSelect" class="btn">
+                <option value="">Select Computer</option>
+                <option value="AlexandreSchoolPC">AlexandreSchoolPC</option>
+                <option value="AlexandreBasementPC">AlexandreBasementPC</option>
+                <option value="LaurianneSchoolPC">LaurianneSchoolPC</option>
+            </select>
+            
+            <!-- Shutdown Option Dropdown -->
+            <select id="forceShutdownOption" class="btn" onchange="handleShutdownOption()">
+                <option value="">Select Shutdown Option</option>
+                <option value="now">Shutdown Now</option>
+                <option value="30min">Shutdown in 30 Minutes</option>
+                <option value="specific">Shutdown at Specific Time</option>
+            </select>
+
+            <!-- Pause Option Dropdown -->
+            <select id="pauseOption" class="btn">
+                <option value="">Pause Duration</option>
+                <option value="1hr">One hour pause</option>
+                <option value="2hr">Two hour pause</option>
+                <option value="3hr">Three hour pause</option>
+                <option value="4hr">Four hour pause</option>
+                <option value="nextDay">Until NEXT DAY!</option>
+            </select>
+        </div>
+        
+        <!-- Specific Time Input (hidden by default) -->
+        <div id="specificTimeInput" style="display: none; margin-top: 10px;">
+            <label for="specificTime">Shutdown Time:</label>
+            <input type="time" id="specificTime">
+        </div>
+
+        <!-- Submit Button -->
+        <button class="submit-btn" onclick="saveSettings()">SUBMIT</button>
+    </div>
+
+    <script>
+        // Function to handle shutdown option selection
+        function handleShutdownOption() {
+            const option = document.getElementById('forceShutdownOption').value;
+            const specificTimeInput = document.getElementById('specificTimeInput');
+            
+            if (option === "specific") {
+                specificTimeInput.style.display = "block";
+            } else {
+                specificTimeInput.style.display = "none";
+            }
+        }
+
+        // Function to save settings to Firebase
+        function saveSettings() {
+            const computer = document.getElementById('computerSelect').value;
+            const shutdownOption = document.getElementById('forceShutdownOption').value;
+            const specificTime = document.getElementById('specificTime').value;
+            const pauseDuration = document.getElementById('pauseOption').value;
+
+            const data = {
+                computer: computer,
+                shutdownOption: shutdownOption,
+                specificTime: shutdownOption === "specific" ? specificTime : null,
+                pauseDuration: pauseDuration
+            };
+
+            // Firebase Realtime Database URL
+            const databaseUrl = "https://autoshut-3df91-default-rtdb.firebaseio.com/settings.json";
+
+            // Use PATCH to update settings
+            fetch(databaseUrl, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Data updated successfully:", data);
+                alert("Settings saved successfully!");
+            })
+            .catch(error => {
+                console.error("Error updating data:", error);
+                alert("Error saving settings.");
+            });
+        }
+    </script>
+</body>
+</html>
